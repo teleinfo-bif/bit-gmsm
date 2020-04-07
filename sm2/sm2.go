@@ -378,15 +378,24 @@ func Sm2Sign(priv *PrivateKey, msg, uid []byte) (sign []byte, err error) {
 		d1Inv := new(big.Int).ModInverse(d1, N)
 		sig.S.Mul(sig.S, d1Inv)
 		sig.S.Mod(sig.S, N)
-		fmt.Printf("sign sig.s is %v\n", sig.S)
-		fmt.Printf("sign sig.r is %v\n", sig.R)
+
 		if sig.S.Sign() != 0 {
 			break
 		}
 	}
+	fmt.Printf("sign sig.R is %v\n", sig.R)
+	fmt.Printf("sign sig.s is %v\n", sig.S)
+	rlen := len(sig.R.Bytes())
+	fmt.Printf("sign sig.R len is %d\n", rlen)
 
 	sign = make([]byte, 66)
-	copy(sign[:32], sig.R.Bytes())
+
+	start := 0
+	if rlen < 32 {
+		start = 32 - rlen
+	}
+
+	copy(sign[start:32], sig.R.Bytes())
 	copy(sign[32:64], sig.S.Bytes())
 	if sig.V == 0 {
 		sign[64] = 0
@@ -394,6 +403,14 @@ func Sm2Sign(priv *PrivateKey, msg, uid []byte) (sign []byte, err error) {
 		sign[64] = 1
 	}
 	sign[65] = 0
+
+	fmt.Printf("sign sig is %v\n", sign)
+	R := new(big.Int).SetBytes(sign[start:32])
+	r := new(big.Int).SetBytes(sign[:32])
+	s := new(big.Int).SetBytes(sign[32:64])
+	fmt.Printf("test sign sig.R is %v\n", r)
+	fmt.Printf("test sign sig.S is %v\n", s)
+	fmt.Printf("test sign sig.R is %v\n", R)
 
 	return
 }
@@ -621,8 +638,13 @@ func RecoverPubKey(msg []byte, sig []byte) ([]byte, error) {
 	}
 	za, _ := ZA(nil, nil)
 	c := P256Sm2()
+	fmt.Printf("RecoverPubKey sig is %v\n", sig)
+
 	r := new(big.Int).SetBytes(sig[:32])
 	s := new(big.Int).SetBytes(sig[32:64])
+	fmt.Printf("RecoverPubKey sig.R is %v\n", r)
+	fmt.Printf("RecoverPubKey sig.S is %v\n", s)
+
 	e, _ := msgHash(za, msg)
 	Rx := new(big.Int).Sub(r, e)
 	fmt.Printf("RecoverPubKey Before mod Rx is %v\n", Rx)
@@ -636,7 +658,7 @@ func RecoverPubKey(msg []byte, sig []byte) ([]byte, error) {
 	fmt.Printf("RecoverPubKey e is %v\n", e)
 	fmt.Printf("RecoverPubKey sig.r is %v\n", r)
 	fmt.Printf("RecoverPubKey sig.s is %v\n", s)
-	fmt.Printf("RecoverPubKey Rx is %v\n,Ry is %v\n", Rx, Ry)
+	fmt.Printf("RecoverPubKey Rx is %v\nRy is %v\n", Rx, Ry)
 	if err != nil {
 		fmt.Println("decompressPoint Ry failed,err is ", err)
 		return []byte{}, err
