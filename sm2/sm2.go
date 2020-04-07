@@ -354,8 +354,8 @@ func Sm2Sign(priv *PrivateKey, msg, uid []byte) (sign []byte, err error) {
 				return
 			}
 			sig.R, ry = priv.Curve.ScalarBaseMult(k.Bytes())
-			//	rx = new(big.Int).SetBytes(sig.R.Bytes())
-			//	fmt.Printf("sign rx is %v\n",rx)
+			rx := new(big.Int).SetBytes(sig.R.Bytes())
+			fmt.Printf("sign rx is %v\n", rx)
 			sig.R.Add(sig.R, e)
 			sig.R.Mod(sig.R, N)
 
@@ -624,7 +624,7 @@ func RecoverPubKey(msg []byte, sig []byte) ([]byte, error) {
 	s := new(big.Int).SetBytes(sig[32:64])
 	e, _ := msgHash(za, msg)
 	Rx := new(big.Int).Sub(r, e)
-	//	fmt.Printf("RecoverPubKey Before mod Rx is %v\n",Rx)
+	fmt.Printf("RecoverPubKey Before mod Rx is %v\n", Rx)
 	for {
 		if Rx.Sign() > 0 { //不可能出现rx + e - N > e 的情况，因为rx < N
 			break
@@ -632,10 +632,10 @@ func RecoverPubKey(msg []byte, sig []byte) ([]byte, error) {
 		Rx.Mod(Rx, c.Params().N)
 	}
 	Ry, err := decompressPoint(c, Rx, int(sig[64])%2 == 1)
-	//	fmt.Printf("RecoverPubKey e is %v\n",e)
-	//	fmt.Printf("RecoverPubKey sig.r is %v\n",r)
-	//	fmt.Printf("RecoverPubKey sig.s is %v\n",s)
-	//	fmt.Printf("RecoverPubKey Rx is %v\n,Ry is %v\n",Rx, Ry)
+	fmt.Printf("RecoverPubKey e is %v\n", e)
+	fmt.Printf("RecoverPubKey sig.r is %v\n", r)
+	fmt.Printf("RecoverPubKey sig.s is %v\n", s)
+	fmt.Printf("RecoverPubKey Rx is %v\n,Ry is %v\n", Rx, Ry)
 	if err != nil {
 		fmt.Println("decompressPoint Ry failed,err is ", err)
 		return []byte{}, err
