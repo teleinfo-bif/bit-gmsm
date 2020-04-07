@@ -379,6 +379,7 @@ func Sm2Sign(priv *PrivateKey, msg, uid []byte) (sign []byte, err error) {
 		sig.S.Mul(sig.S, d1Inv)
 		sig.S.Mod(sig.S, N)
 		fmt.Printf("sign sig.s is %v\n", sig.S)
+		fmt.Printf("sign sig.r is %v\n", sig.R)
 		if sig.S.Sign() != 0 {
 			break
 		}
